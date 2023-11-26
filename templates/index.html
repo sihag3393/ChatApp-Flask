@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My IND-Chat App</title>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"
+      integrity="sha512-zoJXRvW2gC8Z0Xo3lBbao5+AS3g6YWr5ztKqaicua11xHo+AvE1b0lT9ODgrHTmNUxeCw0Ry4BGRYZfXu70weg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+  </head>
+
+
+
+
+  <body>
+    <h1>My Chat app</h1>
+    <b>Welcome, {{user}}</b>
+    <br />
+    <b>You are connected to: {{recipient}}</b>
+    <br /><br />
+    <div id="messages">
+      {% for message in messages %} {% if message.sender == user %}
+      <div><b>You: {{message.message}}</b></div>
+      {% else %}
+      <div><b>{{recipient}}: {{message.message}}</b></div>
+      {% endif %} {% endfor %}
+    </div>
+
+
+
+
+    Message: <input type="text" id="private_message" />
+    <button type="submit" id="send_private_message">Send</button>
+
+    <form method="POST" action="#" enctype="multipart/form-data">
+      <input type="hidden" name="recipient" value="{{recipient}}" />
+      <input type="hidden" name="user" value="{{user}}" />
+      <label for="image_file"></label>
+      <input type="file" id="image_file" name="image_file" accept="image/jpeg,image/png" />
+      <button type="submit">Send file</button>
+    </form>
+
+
+
+
+
+    <br />
+    <br />
+    <input type="button" value="HOME" id="loginButton" />
+    <script>
+      document
+        .getElementById("loginButton")
+        .addEventListener("click", function () {
+          // Redirect the user to the login page
+          window.location.href = "/users"; // Replace "login.html" with the actual login page URL
+        });
+    </script>
+
+
+
+
+    <script>
+      var socket = io.connect("http://127.0.0.1:5000");
+
+      document.getElementById("send_private_message").onclick = function () {
+        username = "{{recipient}}";
+        console.log("USERNAME:", username);
+        message = document.getElementById("private_message").value;
+
+        document.getElementById(
+          "messages"
+        ).innerHTML += `<div><b>You: ${message}</b></div>`;
+
+        socket.emit("private_message", {
+          username: username,
+          message: message,
+        });
+        document.getElementById("private_message").value = "";
+      };
+
+      socket.on("new_private_message", function (data) {
+        document.getElementById(
+          "messages"
+        ).innerHTML += `<div><b>${data["sender"]}: ${data["message"]}</b></div>`;
+      });
+
+
+
+
+      document.getElementById("send_file").onclick = function () {
+        var fileInput = document.getElementById("image_file");
+        var file = fileInput.files[0];
+
+      if (file) {
+         // Assuming 'socket' is your WebSocket object
+         var username = "{{recipient}}";
+
+          // Create a new FileReader to read the file content
+          var reader = new FileReader();
+
+          // Define an event handler for when the file is loaded
+        reader.onload = function(event) {
+         // Create an <img> element
+         var imageElement = document.createElement("img");
+
+          // Set the src attribute of the <img> element to the loaded file data
+           imageElement.src = event.target.result;
+
+          // Append the <img> element to the document
+         document.getElementById("image_container").appendChild(imageElement);
+  };
+
+  // Read the file as a data URL
+  reader.readAsDataURL(file);
+
+        }
+      };
+    </script>
+
+  </body>
+</html>
